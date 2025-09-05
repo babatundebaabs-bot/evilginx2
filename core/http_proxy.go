@@ -634,9 +634,9 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 				}
 
 				// fix x-embedding-uri
-				x-embedding-uri := req.Header.Get("X-Embedding-Uri")
-				if x-embedding-uri != "" {
-					if o_url, err := url.Parse(x-embedding-uri); err == nil {
+				xEmbeddingUri := req.Header.Get("X-Embedding-Uri")
+				if xEmbeddingUri != "" {
+					if o_url, err := url.Parse(xEmbeddingUri); err == nil {
 						if r_host, ok := p.replaceHostWithOriginal(o_url.Host); ok {
 							o_url.Host = r_host
 							req.Header.Set("X-Embedding-Uri", o_url.String())
